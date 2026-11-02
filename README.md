@@ -1,20 +1,8 @@
-\# AI-Based Obstacle Detection and Path Planning for a Simulated Autonomous Drone
-
-
-
-BSERC Defence-Space Tech Internship Project.
-
-
-
-\## Tech Stack
-
-Python + OpenCV (single technology, per project scope)
-
-
-
 \## Progress
 
 \- \[x] Day 1: Simulated environment — canvas, obstacle, drone, goal rendering
+
+\- \[x] Day 2: Drone movement via keyboard controls (W/A/S/D)
 
 \- \[ ] Obstacle detection (OpenCV contours)
 
