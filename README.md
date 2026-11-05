@@ -20,7 +20,9 @@ Python + OpenCV (single technology, per project scope)
 
 \- \[x] Day 3-4: Start/goal markers, grid mapping, WASD control with collision
 
-\- \[ ] Obstacle detection (OpenCV contours)
+\- \[x] Day 6: Obstacle detection from pixels (HSV mask + cv2.findContours)
+
+\- \[ ] Occupancy grid from detected obstacles
 
 \- \[ ] A\* path planning (hand-implemented)
 
@@ -34,11 +36,15 @@ Python + OpenCV (single technology, per project scope)
 
 
 
-Phase 1 complete: simulated environment (OpenCV canvas), start/goal markers,
-
-pixel-to-grid coordinate mapping, WASD drone control with obstacle collision.
+Phase 1 complete: simulated environment, start/goal markers, grid mapping, WASD control.
 
 
 
-Next: Phase 2 - obstacle detection with cv2.findContours.
+Phase 2 in progress: red obstacles are detected from the rendered frame using HSV
+
+thresholding and contours, with yellow bounding boxes drawn on detections.
+
+
+
+Next: convert detections into an occupancy grid for A\*.
 
