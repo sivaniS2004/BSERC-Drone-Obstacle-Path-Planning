@@ -13,6 +13,7 @@ BLUE   = (255, 0, 0)
 GREEN  = (0, 200, 0)
 ORANGE = (0, 140, 255)
 GRAY   = (220, 220, 220)
+YELLOW = (0, 255, 255)
 
 # Obstacles as (x, y, w, h) in pixels
 OBSTACLES = [(200, 100, 80, 120), (360, 260, 100, 60), (120, 340, 60, 80)]
@@ -58,6 +59,25 @@ def render(drone_pos, show_grid=False):
     return frame
 
 
+# ---------- Detection (works on pixels only) ----------
+def detect_obstacles(frame):
+    """Find red obstacles using only pixels. Returns list of (x, y, w, h)."""
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+    # Red wraps around the hue axis, so we need two ranges
+    mask1 = cv2.inRange(hsv, np.array([0, 120, 70]),   np.array([10, 255, 255]))
+    mask2 = cv2.inRange(hsv, np.array([170, 120, 70]), np.array([180, 255, 255]))
+    mask = mask1 | mask2
+
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    boxes = []
+    for cnt in contours:
+        if cv2.contourArea(cnt) > 100:        # ignore tiny noise
+            boxes.append(cv2.boundingRect(cnt))
+    return boxes
+
+
 def hits_obstacle(x, y):
     for (ox, oy, w, h) in OBSTACLES:
         if ox <= x <= ox + w and oy <= y <= oy + h:
@@ -72,9 +92,15 @@ def main():
     while True:
         frame = render(tuple(drone), show_grid)
 
+        # Detect obstacles from pixels only, then draw yellow boxes
+        detected = detect_obstacles(frame)
+        for (x, y, w, h) in detected:
+            cv2.rectangle(frame, (x, y), (x + w, y + h), YELLOW, 2)
+
         r, c = pixel_to_cell(drone[0], drone[1])
-        cv2.putText(frame, f"cell (row,col)=({r},{c})  [WASD]=move [G]=grid [Q]=quit",
-                    (10, 18), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 1)
+        cv2.putText(frame,
+                    f"cell=({r},{c})  obstacles detected: {len(detected)}  [WASD] [G]=grid [Q]=quit",
+                    (10, HEIGHT - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 1)
 
         cv2.imshow("Drone Simulation", frame)
         key = cv2.waitKey(30) & 0xFF
