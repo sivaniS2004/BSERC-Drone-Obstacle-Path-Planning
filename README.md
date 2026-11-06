@@ -26,7 +26,7 @@ Python + OpenCV (single technology, per project scope)
 
 \- \[x] Day 6: Obstacle detection from pixels (HSV mask + cv2.findContours)
 
-\- \[ ] Day 7: Verify detected boxes against true obstacles
+\- \[x] Day 7: Verified detected boxes against true obstacles (all 3 matched)
 
 \- \[ ] Day 8: Occupancy grid from detected obstacles
 
@@ -48,9 +48,15 @@ Phase 1 complete: simulated environment, start/goal markers, grid mapping, WASD 
 
 Phase 2 in progress: red obstacles are detected from the rendered frame using HSV
 
-thresholding and contours, with yellow bounding boxes drawn on detections.
+thresholding and contours. Detection was verified against the true obstacle list:
+
+all 3 obstacles found at the correct positions. Detected width and height are
+
+1 px larger than the drawn values because OpenCV counts both edge pixels, so the
+
+occupancy grid will use x + w - 1 and y + h - 1 as the last pixel.
 
 
 
-Next: verify detection accuracy, then convert detections into an occupancy grid for A\*.
+Next: convert detections into a 24 x 32 occupancy grid for A\*.
 

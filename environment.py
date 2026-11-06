@@ -78,6 +78,16 @@ def detect_obstacles(frame):
     return boxes
 
 
+def check_detection(detected):
+    """Compare detected boxes with the true OBSTACLES list."""
+    print("Detected boxes (x, y, w, h):")
+    for box in sorted(detected):
+        print("  ", box)
+    print("True obstacles:")
+    for box in sorted(OBSTACLES):
+        print("  ", box)
+
+
 def hits_obstacle(x, y):
     for (ox, oy, w, h) in OBSTACLES:
         if ox <= x <= ox + w and oy <= y <= oy + h:
@@ -88,6 +98,9 @@ def hits_obstacle(x, y):
 def main():
     drone = list(START)
     show_grid = True
+
+    # Day 7: print detected vs true obstacles once at startup
+    check_detection(detect_obstacles(render(tuple(drone), False)))
 
     while True:
         frame = render(tuple(drone), show_grid)
