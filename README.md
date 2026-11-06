@@ -18,11 +18,17 @@ Python + OpenCV (single technology, per project scope)
 
 \- \[x] Day 2: Drone movement via keyboard controls (W/A/S/D)
 
-\- \[x] Day 3-4: Start/goal markers, grid mapping, WASD control with collision
+\- \[x] Day 3: Start/goal markers, pixel-to-grid coordinate mapping
+
+\- \[x] Day 4: Render loop, WASD control with obstacle collision, cell readout
+
+\- \[x] Day 5: Cleanup, first GitHub commit, README status
 
 \- \[x] Day 6: Obstacle detection from pixels (HSV mask + cv2.findContours)
 
-\- \[ ] Occupancy grid from detected obstacles
+\- \[ ] Day 7: Verify detected boxes against true obstacles
+
+\- \[ ] Day 8: Occupancy grid from detected obstacles
 
 \- \[ ] A\* path planning (hand-implemented)
 
@@ -46,5 +52,5 @@ thresholding and contours, with yellow bounding boxes drawn on detections.
 
 
 
-Next: convert detections into an occupancy grid for A\*.
+Next: verify detection accuracy, then convert detections into an occupancy grid for A\*.
 
