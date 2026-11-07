@@ -3,10 +3,9 @@ import numpy as np
 
 # ---------- Configuration ----------
 WIDTH, HEIGHT = 640, 480
-CELL = 20                                    # each grid cell = 20x20 px
-COLS, ROWS = WIDTH // CELL, HEIGHT // CELL   # 32 columns x 24 rows
+CELL = 20
+COLS, ROWS = WIDTH // CELL, HEIGHT // CELL
 
-# Colors (BGR order in OpenCV)
 WHITE  = (255, 255, 255)
 RED    = (0, 0, 255)
 BLUE   = (255, 0, 0)
@@ -14,26 +13,22 @@ GREEN  = (0, 200, 0)
 ORANGE = (0, 140, 255)
 GRAY   = (220, 220, 220)
 YELLOW = (0, 255, 255)
+PURPLE = (200, 0, 150)
 
-# Obstacles as (x, y, w, h) in pixels
 OBSTACLES = [(200, 100, 80, 120), (360, 260, 100, 60), (120, 340, 60, 80)]
 
-START = (40, 40)      # (x, y) in pixels
+START = (40, 40)
 GOAL  = (580, 430)
-STEP = 10             # drone moves 10 px per keypress
+STEP = 10
 
 
-# ---------- Coordinate system ----------
-# Pixels use (x, y): x = horizontal, y = vertical
-# Grid cells use (row, col): row = vertical, col = horizontal
 def pixel_to_cell(x, y):
     return (y // CELL, x // CELL)
 
 def cell_to_pixel(row, col):
-    return (col * CELL + CELL // 2, row * CELL + CELL // 2)  # cell center
+    return (col * CELL + CELL // 2, row * CELL + CELL // 2)
 
 
-# ---------- Rendering ----------
 def render(drone_pos, show_grid=False):
     frame = np.full((HEIGHT, WIDTH, 3), 255, dtype=np.uint8)
 
@@ -59,27 +54,20 @@ def render(drone_pos, show_grid=False):
     return frame
 
 
-# ---------- Detection (works on pixels only) ----------
 def detect_obstacles(frame):
-    """Find red obstacles using only pixels. Returns list of (x, y, w, h)."""
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-
-    # Red wraps around the hue axis, so we need two ranges
     mask1 = cv2.inRange(hsv, np.array([0, 120, 70]),   np.array([10, 255, 255]))
     mask2 = cv2.inRange(hsv, np.array([170, 120, 70]), np.array([180, 255, 255]))
     mask = mask1 | mask2
-
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
     boxes = []
     for cnt in contours:
-        if cv2.contourArea(cnt) > 100:        # ignore tiny noise
+        if cv2.contourArea(cnt) > 100:
             boxes.append(cv2.boundingRect(cnt))
     return boxes
 
 
 def check_detection(detected):
-    """Compare detected boxes with the true OBSTACLES list."""
     print("Detected boxes (x, y, w, h):")
     for box in sorted(detected):
         print("  ", box)
@@ -95,28 +83,17 @@ def hits_obstacle(x, y):
     return False
 
 
-# ---------- Day 8: Occupancy Grid ----------
 def build_occupancy_grid(detected, rows=ROWS, cols=COLS, cell=CELL):
-    """
-    Converts detected obstacle boxes (x, y, w, h) into a rows x cols grid.
-    0 = free, 1 = blocked. Marks every cell the obstacle overlaps.
-    Uses x + w - 1 and y + h - 1 as the last pixel, since detected boxes
-    are 1 px larger than the drawn values (see Day 7 log).
-    """
     grid = [[0 for _ in range(cols)] for _ in range(rows)]
-
     for (x, y, w, h) in detected:
         x_end = x + w - 1
         y_end = y + h - 1
-
         r1, c1 = pixel_to_cell(x, y)
         r2, c2 = pixel_to_cell(x_end, y_end)
-
         for r in range(min(r1, r2), max(r1, r2) + 1):
             for c in range(min(c1, c2), max(c1, c2) + 1):
                 if 0 <= r < rows and 0 <= c < cols:
                     grid[r][c] = 1
-
     return grid
 
 
@@ -125,26 +102,93 @@ def print_grid(grid):
         print(''.join('#' if cell else '.' for cell in row))
 
 
+def heuristic(a, b):
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+
+def astar(grid, start_cell, goal_cell):
+    rows = len(grid)
+    cols = len(grid[0])
+
+    def neighbors(cell):
+        r, c = cell
+        candidates = [(r-1, c), (r+1, c), (r, c-1), (r, c+1)]
+        result = []
+        for nr, nc in candidates:
+            if 0 <= nr < rows and 0 <= nc < cols and grid[nr][nc] == 0:
+                result.append((nr, nc))
+        return result
+
+    open_list = [start_cell]
+    came_from = {}
+    g_score = {start_cell: 0}
+    f_score = {start_cell: heuristic(start_cell, goal_cell)}
+    closed_set = set()
+
+    while open_list:
+        current = min(open_list, key=lambda cell: f_score.get(cell, float('inf')))
+
+        if current == goal_cell:
+            path = [current]
+            while current in came_from:
+                current = came_from[current]
+                path.append(current)
+            path.reverse()
+            return path
+
+        open_list.remove(current)
+        closed_set.add(current)
+
+        for neighbor in neighbors(current):
+            if neighbor in closed_set:
+                continue
+            tentative_g = g_score[current] + 1
+            if neighbor not in g_score or tentative_g < g_score[neighbor]:
+                came_from[neighbor] = current
+                g_score[neighbor] = tentative_g
+                f_score[neighbor] = tentative_g + heuristic(neighbor, goal_cell)
+                if neighbor not in open_list:
+                    open_list.append(neighbor)
+
+    return None
+
+
 def main():
     drone = list(START)
     show_grid = True
 
-    # Day 7: print detected vs true obstacles once at startup
     detected_at_start = detect_obstacles(render(tuple(drone), False))
     check_detection(detected_at_start)
 
-    # Day 8: build and print the occupancy grid once at startup
     occupancy = build_occupancy_grid(detected_at_start)
     print("Occupancy grid (24 rows x 32 cols):")
     print_grid(occupancy)
 
+    # Day 9: run A* once at startup from START to GOAL
+    start_cell = pixel_to_cell(START[0], START[1])
+    goal_cell = pixel_to_cell(GOAL[0], GOAL[1])
+    path = astar(occupancy, start_cell, goal_cell)
+
+    if path is None:
+        print("No path found from START to GOAL!")
+    else:
+        print(f"Path found with {len(path)} cells:")
+        print(path)
+
     while True:
         frame = render(tuple(drone), show_grid)
 
-        # Detect obstacles from pixels only, then draw yellow boxes
         detected = detect_obstacles(frame)
         for (x, y, w, h) in detected:
             cv2.rectangle(frame, (x, y), (x + w, y + h), YELLOW, 2)
+
+        # Draw the planned path as connected purple dots
+        if path:
+            pixel_points = [cell_to_pixel(r, c) for (r, c) in path]
+            for i in range(len(pixel_points) - 1):
+                cv2.line(frame, pixel_points[i], pixel_points[i + 1], PURPLE, 2)
+            for p in pixel_points:
+                cv2.circle(frame, p, 2, PURPLE, -1)
 
         r, c = pixel_to_cell(drone[0], drone[1])
         cv2.putText(frame,

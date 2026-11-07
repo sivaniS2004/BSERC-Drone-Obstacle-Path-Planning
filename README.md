@@ -30,7 +30,7 @@ Python + OpenCV (single technology, per project scope)
 
 \- \[x] Day 8: Obstacle boxes converted to a 24x32 occupancy grid (verified against true obstacle positions)
 
-\- \[ ] A\* path planning (hand-implemented)
+\- \[x] Day 9: A\* path planning implemented from scratch, verified — finds a 47-cell path from START to GOAL avoiding all obstacles
 
 \- \[ ] Integration + dynamic replanning
 
