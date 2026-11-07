@@ -28,7 +28,7 @@ Python + OpenCV (single technology, per project scope)
 
 \- \[x] Day 7: Verified detected boxes against true obstacles (all 3 matched)
 
-\- \[ ] Day 8: Occupancy grid from detected obstacles
+\- \[x] Day 8: Obstacle boxes converted to a 24x32 occupancy grid (verified against true obstacle positions)
 
 \- \[ ] A\* path planning (hand-implemented)
 

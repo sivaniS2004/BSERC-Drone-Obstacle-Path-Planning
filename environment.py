@@ -95,12 +95,48 @@ def hits_obstacle(x, y):
     return False
 
 
+# ---------- Day 8: Occupancy Grid ----------
+def build_occupancy_grid(detected, rows=ROWS, cols=COLS, cell=CELL):
+    """
+    Converts detected obstacle boxes (x, y, w, h) into a rows x cols grid.
+    0 = free, 1 = blocked. Marks every cell the obstacle overlaps.
+    Uses x + w - 1 and y + h - 1 as the last pixel, since detected boxes
+    are 1 px larger than the drawn values (see Day 7 log).
+    """
+    grid = [[0 for _ in range(cols)] for _ in range(rows)]
+
+    for (x, y, w, h) in detected:
+        x_end = x + w - 1
+        y_end = y + h - 1
+
+        r1, c1 = pixel_to_cell(x, y)
+        r2, c2 = pixel_to_cell(x_end, y_end)
+
+        for r in range(min(r1, r2), max(r1, r2) + 1):
+            for c in range(min(c1, c2), max(c1, c2) + 1):
+                if 0 <= r < rows and 0 <= c < cols:
+                    grid[r][c] = 1
+
+    return grid
+
+
+def print_grid(grid):
+    for row in grid:
+        print(''.join('#' if cell else '.' for cell in row))
+
+
 def main():
     drone = list(START)
     show_grid = True
 
     # Day 7: print detected vs true obstacles once at startup
-    check_detection(detect_obstacles(render(tuple(drone), False)))
+    detected_at_start = detect_obstacles(render(tuple(drone), False))
+    check_detection(detected_at_start)
+
+    # Day 8: build and print the occupancy grid once at startup
+    occupancy = build_occupancy_grid(detected_at_start)
+    print("Occupancy grid (24 rows x 32 cols):")
+    print_grid(occupancy)
 
     while True:
         frame = render(tuple(drone), show_grid)
