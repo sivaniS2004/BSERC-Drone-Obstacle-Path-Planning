@@ -34,6 +34,8 @@ Python + OpenCV (single technology, per project scope)
 
 \- \[x] Day 10: Drone auto-follows the A\* path (toggle with F key) — reached GOAL exactly via the planned route
 
+\- \[x] Day 11: Dynamic replanning — drone detects new obstacles mid-flight (N key) and automatically recalculates its path via A\*
+
 \- \[ ] Integration + dynamic replanning
 
 \- \[ ] Testing + demo video
