@@ -19,7 +19,8 @@ OBSTACLES = [(200, 100, 80, 120), (360, 260, 100, 60), (120, 340, 60, 80)]
 
 START = (40, 40)
 GOAL  = (580, 430)
-STEP = 10
+STEP = 10          # manual move per keypress
+AUTO_SPEED = 4     # pixels per frame when auto-following the path
 
 
 def pixel_to_cell(x, y):
@@ -153,9 +154,25 @@ def astar(grid, start_cell, goal_cell):
     return None
 
 
+def step_towards(current, target, speed):
+    """Move (x, y) current one step towards target, capped at speed. Returns new (x, y)."""
+    cx, cy = current
+    tx, ty = target
+    dx, dy = tx - cx, ty - cy
+    dist = (dx ** 2 + dy ** 2) ** 0.5
+
+    if dist <= speed:
+        return (tx, ty), True  # reached this target exactly
+
+    nx = cx + speed * dx / dist
+    ny = cy + speed * dy / dist
+    return (int(nx), int(ny)), False
+
+
 def main():
     drone = list(START)
     show_grid = True
+    auto_follow = False
 
     detected_at_start = detect_obstacles(render(tuple(drone), False))
     check_detection(detected_at_start)
@@ -164,16 +181,20 @@ def main():
     print("Occupancy grid (24 rows x 32 cols):")
     print_grid(occupancy)
 
-    # Day 9: run A* once at startup from START to GOAL
     start_cell = pixel_to_cell(START[0], START[1])
     goal_cell = pixel_to_cell(GOAL[0], GOAL[1])
     path = astar(occupancy, start_cell, goal_cell)
 
     if path is None:
         print("No path found from START to GOAL!")
+        pixel_points = []
     else:
         print(f"Path found with {len(path)} cells:")
         print(path)
+        pixel_points = [cell_to_pixel(r, c) for (r, c) in path]
+
+    path_index = 0
+    reached_goal_via_path = False
 
     while True:
         frame = render(tuple(drone), show_grid)
@@ -182,17 +203,16 @@ def main():
         for (x, y, w, h) in detected:
             cv2.rectangle(frame, (x, y), (x + w, y + h), YELLOW, 2)
 
-        # Draw the planned path as connected purple dots
-        if path:
-            pixel_points = [cell_to_pixel(r, c) for (r, c) in path]
+        if pixel_points:
             for i in range(len(pixel_points) - 1):
                 cv2.line(frame, pixel_points[i], pixel_points[i + 1], PURPLE, 2)
             for p in pixel_points:
                 cv2.circle(frame, p, 2, PURPLE, -1)
 
         r, c = pixel_to_cell(drone[0], drone[1])
+        mode_text = "AUTO-FOLLOW" if auto_follow else "MANUAL"
         cv2.putText(frame,
-                    f"cell=({r},{c})  obstacles detected: {len(detected)}  [WASD] [G]=grid [Q]=quit",
+                    f"cell=({r},{c})  mode={mode_text}  [WASD] [F]=auto [G]=grid [Q]=quit",
                     (10, HEIGHT - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 1)
 
         cv2.imshow("Drone Simulation", frame)
@@ -202,20 +222,37 @@ def main():
             break
         elif key == ord('g'):
             show_grid = not show_grid
+        elif key == ord('f'):
+            auto_follow = not auto_follow
+            if auto_follow:
+                print("Auto-follow ON — drone will move along the planned path.")
+            else:
+                print("Auto-follow OFF — manual control.")
 
-        dx = dy = 0
-        if key == ord('w'):   dy = -STEP
-        elif key == ord('s'): dy = STEP
-        elif key == ord('a'): dx = -STEP
-        elif key == ord('d'): dx = STEP
+        if auto_follow and pixel_points and path_index < len(pixel_points):
+            target = pixel_points[path_index]
+            new_pos, reached = step_towards(tuple(drone), target, AUTO_SPEED)
+            drone = [new_pos[0], new_pos[1]]
+            if reached:
+                path_index += 1
+            if path_index >= len(pixel_points) and not reached_goal_via_path:
+                print("Reached GOAL via planned path!")
+                reached_goal_via_path = True
 
-        nx = min(max(drone[0] + dx, 0), WIDTH - 1)
-        ny = min(max(drone[1] + dy, 0), HEIGHT - 1)
-        if not hits_obstacle(nx, ny):
-            drone = [nx, ny]
+        elif not auto_follow:
+            dx = dy = 0
+            if key == ord('w'):   dy = -STEP
+            elif key == ord('s'): dy = STEP
+            elif key == ord('a'): dx = -STEP
+            elif key == ord('d'): dx = STEP
+
+            nx = min(max(drone[0] + dx, 0), WIDTH - 1)
+            ny = min(max(drone[1] + dy, 0), HEIGHT - 1)
+            if not hits_obstacle(nx, ny):
+                drone = [nx, ny]
 
         if abs(drone[0] - GOAL[0]) < 10 and abs(drone[1] - GOAL[1]) < 10:
-            print("Goal reached!")
+            pass  # goal check kept silent here; auto-follow prints its own message
 
     cv2.destroyAllWindows()
 

@@ -32,6 +32,8 @@ Python + OpenCV (single technology, per project scope)
 
 \- \[x] Day 9: A\* path planning implemented from scratch, verified — finds a 47-cell path from START to GOAL avoiding all obstacles
 
+\- \[x] Day 10: Drone auto-follows the A\* path (toggle with F key) — reached GOAL exactly via the planned route
+
 \- \[ ] Integration + dynamic replanning
 
 \- \[ ] Testing + demo video
