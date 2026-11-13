@@ -1,0 +1,7 @@
+scenario,obstacles_found,grid_matches_truth,expected,path_cells,manhattan_min_cells,optimal_vs_bfs,detect_ms,plan_ms,dynamic_replan,replans,result
+1 Empty,0/0,ok,route,47,47,yes,18.71,7.88,OK,1,PASS
+2 Long wall,1/1,ok,route,49,47,yes,1.83,8.05,OK,1,PASS
+3 Original,3/3,ok,route,47,47,yes,1.69,6.08,OK,1,PASS
+4 Corridor,2/2,ok,route,47,47,yes,1.91,4.33,no route (correct),1,PASS
+5 Zigzag,3/3,ok,route,63,47,yes,2.12,6.94,OK,1,PASS
+6 Goal sealed,2/2,ok,no route,none,47,yes,1.8,10.15,n/a (no route),0,PASS
