@@ -95,6 +95,7 @@ Screen recordings are in the demo_videos folder:
 - [Day 10: auto-follow along the A* path](demo_videos/Day10_AutoFollow_PathExecution.mp4)
 - [Day 11: dynamic replanning around new obstacles](demo_videos/Day11_DynamicReplanning_NewObstacles.mp4)
 - [Day 12: scenario testing](demo_videos/Day12_Scenario_Testing.mp4)
+- [Final demo: path following, replanning and scenarios 4, 5 and 6](demo_videos/Final_Demo_Full.mp4)
 
 ## Project Files
 
@@ -119,8 +120,8 @@ Screen recordings are in the demo_videos folder:
 - [x] Day 12: Six test scenarios, BFS cross-check, headless test mode, demo video
 - [x] Day 13: Scenario screenshots
 - [x] Day 14: Final README
-- [ ] Final polish and supervisor update
+- [x] Project was successfully executed and submitted
 
 ## Limitations and Future Work
 
-This is a 2D simulation with 4-directional grid movement and no flight dynamics, so it demonstrates robotics fundamentals (detection, planning, replanning) rather than real flight. Possible next steps: diagonal moves, moving obstacles, and a ROS2-based simulation.
+This project implements the full perception-to-planning pipeline in 2D, with 4-directional grid movement, to demonstrate the core robotics fundamentals clearly and verifiably: detection, occupancy mapping, planning, and replanning. Natural next steps toward real flight are diagonal or continuous movement, moving obstacles with predicted paths, and a ROS2-based simulation with an actual drone model.
